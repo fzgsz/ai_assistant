@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI 助手</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+  <div class="app">
+    <!-- 侧边栏 -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <h1>AI 助手</h1>
+        <div style="display:flex;gap:6px;">
+          <button class="btn-theme" id="btnTheme" title="切换主题">🌙</button>
+          <button class="btn-new" id="btnNewChat" title="新建对话">+</button>
+        </div>
+      </div>
+      <div class="conversation-list" id="conversationList"></div>
+    </aside>
+
+    <!-- 主聊天区 -->
+    <main class="chat-area">
+      <div class="chat-header">
+        <button class="btn-toggle-sidebar" id="btnToggleSidebar">☰</button>
+        <span class="current-title" id="currentTitle">AI 助手</span>
+        <select class="model-select" id="modelSelect">
+          <option value="deepseek-chat">DeepSeek-V3</option>
+          <option value="deepseek-reasoner">DeepSeek-R1</option>
+        </select>
+      </div>
+
+      <div class="messages" id="messages">
+        <div class="welcome" id="welcome">
+          <div class="welcome-icon">✨</div>
+          <h2>有什么可以帮你的？</h2>
+          <p>开始一段对话，我会记住上下文</p>
+        </div>
+      </div>
+
+      <div class="input-area">
+        <div class="input-row">
+          <textarea
+            id="messageInput"
+            placeholder="输入消息... (Shift+Enter 换行，Enter 发送)"
+            rows="1"
+          ></textarea>
+          <button class="btn-send" id="btnSend" title="发送">
+            <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
+              <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
