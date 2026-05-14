@@ -4,21 +4,19 @@ import os
 from datetime import datetime
 from contextlib import contextmanager
 
+import httpx
 from dotenv import load_dotenv
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.responses import StreamingResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
-from openai import AsyncOpenAI
 
 load_dotenv()
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = os.path.join(BASE_DIR, 'chat.db')
 
-client = AsyncOpenAI(
-  api_key=os.getenv('DEEPSEEK_API_KEY', 'your-api-key'),
-  base_url='https://api.deepseek.com'
-)
+DEEPSEEK_KEY = os.getenv('DEEPSEEK_API_KEY', 'your-api-key')
+DEEPSEEK_URL = 'https://api.deepseek.com/v1/chat/completions'
 MODEL = os.getenv('DEEPSEEK_MODEL', 'deepseek-chat')
 
 
@@ -191,16 +189,32 @@ async def chat(request: Request):
   async def generate():
     full_response = ''
     try:
-      stream = await client.chat.completions.create(
-        model=model,
-        messages=messages,
-        stream=True
-      )
-      async for chunk in stream:
-        delta = chunk.choices[0].delta
-        if delta.content:
-          full_response += delta.content
-          yield f'data: {json.dumps({"content": delta.content}, ensure_ascii=False)}\n\n'
+      async with httpx.AsyncClient(timeout=httpx.Timeout(60.0)) as client:
+        async with client.stream(
+          'POST', DEEPSEEK_URL,
+          headers={
+            'Authorization': f'Bearer {DEEPSEEK_KEY}',
+            'Content-Type': 'application/json'
+          },
+          json={
+            'model': model,
+            'messages': messages,
+            'stream': True
+          }
+        ) as response:
+          async for line in response.aiter_lines():
+            if line.startswith('data: '):
+              data_str = line[6:]
+              if data_str == '[DONE]':
+                break
+              try:
+                data = json.loads(data_str)
+                delta = data['choices'][0]['delta']
+                if 'content' in delta and delta['content']:
+                  full_response += delta['content']
+                  yield f'data: {json.dumps({"content": delta["content"]}, ensure_ascii=False)}\n\n'
+              except (json.JSONDecodeError, KeyError, IndexError):
+                pass
 
       # 保存 AI 回复
       with get_db() as conn:
