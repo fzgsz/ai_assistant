@@ -9,6 +9,9 @@ function setTheme(theme) {
   localStorage.setItem('theme', theme);
   const btn = $('#btnTheme');
   if (btn) btn.textContent = theme === 'dark' ? '☀️' : '🌙';
+  // 同步移动端状态栏颜色
+  const metaTheme = document.querySelector('meta[name="theme-color"]');
+  if (metaTheme) metaTheme.content = theme === 'dark' ? '#111827' : '#f5f5f5';
 }
 
 function toggleTheme() {
@@ -33,6 +36,7 @@ const inputEl = $('#messageInput');
 const btnSend = $('#btnSend');
 const btnNewChat = $('#btnNewChat');
 const btnToggleSidebar = $('#btnToggleSidebar');
+const sidebarOverlay = $('#sidebarOverlay');
 const conversationList = $('#conversationList');
 const currentTitle = $('#currentTitle');
 const welcome = $('#welcome');
@@ -107,6 +111,7 @@ function renderConversationList() {
 async function selectConversation(id) {
   if (!id) return;
   state.currentConvId = id;
+  if (isMobile()) closeSidebar();
   renderConversationList();
   currentTitle.textContent = state.conversations.find(c => c.id === id)?.title || 'AI 助手';
 
@@ -442,13 +447,35 @@ inputEl.addEventListener('input', () => {
   inputEl.style.height = Math.min(inputEl.scrollHeight, 150) + 'px';
 });
 
-btnToggleSidebar.addEventListener('click', () => {
-  document.querySelector('.sidebar').classList.toggle('open');
-});
+function isMobile() {
+  return window.matchMedia('(max-width: 768px)').matches;
+}
+
+function openSidebar() {
+  document.querySelector('.sidebar').classList.add('open');
+  sidebarOverlay.classList.add('visible');
+}
+function closeSidebar() {
+  document.querySelector('.sidebar').classList.remove('open');
+  sidebarOverlay.classList.remove('visible');
+}
+function toggleSidebar() {
+  const sidebar = document.querySelector('.sidebar');
+  if (sidebar.classList.contains('open')) {
+    closeSidebar();
+  } else {
+    openSidebar();
+  }
+}
+
+btnToggleSidebar.addEventListener('click', toggleSidebar);
+
+// 点击遮罩关闭侧边栏
+sidebarOverlay.addEventListener('click', closeSidebar);
 
 // 点击消息区关闭移动端侧边栏
 messagesEl.addEventListener('click', () => {
-  document.querySelector('.sidebar').classList.remove('open');
+  if (isMobile()) closeSidebar();
 });
 
 // ── 启动 ────────────────────────────────────────────

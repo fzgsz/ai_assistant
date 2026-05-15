@@ -470,6 +470,30 @@ body {
 [data-theme="dark"] .bubble th { background: #252540; }
 [data-theme="dark"] .messages::-webkit-scrollbar-thumb { background: rgba(255,255,255,.1); }
 
+/* ── 移动端触摸优化 ──────────────────────────────── */
+button, .btn-send, .btn-new, .btn-theme, .btn-toggle-sidebar {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  user-select: none;
+}
+
+/* 防止下拉刷新和弹性滚动 */
+body {
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ── 移动端遮罩层 ────────────────────────────────── */
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.4);
+  z-index: 99;
+  opacity: 0;
+  transition: opacity .25s ease;
+}
+
 /* ── 响应式 ──────────────────────────────────────── */
 @media (max-width: 768px) {
   .sidebar {
@@ -477,10 +501,75 @@ body {
     left: 0; top: 0; bottom: 0;
     z-index: 100;
     transform: translateX(-100%);
+    width: 75%;
+    max-width: 300px;
+    border-radius: 0 12px 12px 0;
   }
-  .sidebar.open { transform: translateX(0); }
+  .sidebar.open {
+    transform: translateX(0);
+    box-shadow: 4px 0 24px rgba(0,0,0,.3);
+  }
 
-  .btn-toggle-sidebar { display: flex; align-items: center; justify-content: center; }
+  .sidebar-overlay { display: block; }
+  .sidebar-overlay.visible { opacity: 1; }
 
-  .message .bubble { max-width: 85%; }
+  .btn-toggle-sidebar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  /* 消息区 */
+  .messages { padding: 12px; }
+  .message .bubble { max-width: 88%; }
+  .message .avatar {
+    width: 30px; height: 30px;
+    font-size: 14px;
+    margin: 0 6px;
+  }
+
+  /* 编辑输入框 */
+  .edit-textarea {
+    min-width: auto;
+    width: 100%;
+  }
+
+  /* 输入区 */
+  .input-area { padding: 10px 12px; }
+  .input-row { padding: 6px 10px; }
+  #messageInput { font-size: 16px; } /* 防止 iOS 缩放 */
+
+  .btn-send {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  /* 侧边栏按钮 */
+  .btn-new, .btn-theme {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  /* 代码块和表格溢出滚动 */
+  .bubble pre {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    font-size: 12px;
+    padding: 10px 12px;
+  }
+  .bubble table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* iOS 安全区域 */
+  @supports (padding-bottom: env(safe-area-inset-bottom)) {
+    .input-area {
+      padding-bottom: calc(10px + env(safe-area-inset-bottom));
+    }
+  }
 }
